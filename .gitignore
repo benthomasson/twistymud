@@ -1,1 +1,3 @@
 *.pyc
+*.log
+_trial_marker
