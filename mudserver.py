@@ -11,7 +11,6 @@ class MudProtocol(basic.LineReceiver):
     def __init__(self):
         self.clients.append(self)
 
-
     def lineReceived(self, line):
         if line == 'quit':
             self.sendLine("Goodbye.")
