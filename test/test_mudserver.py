@@ -51,7 +51,7 @@ class RemoteCalculationTestCase(unittest.TestCase):
         return self.assertCommand('quit\r\n', "Goodbye.\r\n")
 
     def test_do(self):
-        self.assertCommand('do\r\n', "Starting work\r\n>")
-        self.clock.advance(20)
-        self.assertEqual(self.tr.value(), 'XXX')
+        self.assertCommand('do\r\n', "Starting work\r\n(work)>")
+        self.clock.advance(10)
+        self.assertEqual(self.tr.value(), 'Starting work\r\n(work)>Finished work\r\n>')
 
