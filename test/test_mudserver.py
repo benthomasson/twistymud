@@ -1,25 +1,32 @@
 from twistymud.mudserver import MudServerFactory
 from twisted.trial import unittest
+from twisted.internet import task
 from twisted.test import proto_helpers
 
 
 
 class RemoteCalculationTestCase(unittest.TestCase):
     def setUp(self):
+        self.clock = task.Clock()
         factory = MudServerFactory()
         self.proto = factory.buildProtocol(('127.0.0.1', 0))
+        self.proto.callLater = self.clock.callLater
         self.tr = proto_helpers.StringTransport()
         self.proto.makeConnection(self.tr)
 
         self.proto2 = factory.buildProtocol(('127.0.0.1', 0))
+        self.proto2.callLater = self.clock.callLater
         self.tr2 = proto_helpers.StringTransport()
         self.proto2.makeConnection(self.tr2)
 
+    def assertCommand(self, command, expected):
+        self.proto.dataReceived(command)
+        self.assertEqual(self.tr.value(), expected)
 
     def assertYouSaid(self, operation, a, b, expected):
         self.proto.dataReceived('%s %d %d\r\n' % (operation, a, b))
-        self.assertEqual(self.tr.value(), "You said: " + expected)
-        self.assertEqual(self.tr2.value(),"They said: " + expected)
+        self.assertEqual(self.tr.value(), "You said: " + expected + ">")
+        self.assertEqual(self.tr2.value(),"They said: " + expected + ">")
 
 
     def test_add(self):
@@ -36,4 +43,15 @@ class RemoteCalculationTestCase(unittest.TestCase):
 
     def test_divide(self):
         return self.assertYouSaid('divide', 14, 3, "divide 14 3\r\n")
+
+    def test_hi(self):
+        return self.assertCommand('hi\r\n', "You said: hi\r\n>")
+
+    def test_quit(self):
+        return self.assertCommand('quit\r\n', "Goodbye.\r\n")
+
+    def test_do(self):
+        self.assertCommand('do\r\n', "Starting work\r\n>")
+        self.clock.advance(20)
+        self.assertEqual(self.tr.value(), 'XXX')
 

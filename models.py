@@ -6,7 +6,8 @@ class MudObject(object):
 
 class Character(MudObject):
     pass
-
+.
 
 class Item(MudObject):
     pass
+
