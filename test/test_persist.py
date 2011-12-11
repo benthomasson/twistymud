@@ -17,6 +17,28 @@ class TestShelve(unittest.TestCase):
         self.assertEquals(s['a'],1)
         s.close()
 
+    def testWriteBack(self):
+        s = shelve.open("test.db",protocol=2,writeback=True)
+        self.assert_(s.cache is not None)
+        s['a'] = 1
+        self.assertEquals(s.cache['a'],1)
+        s.close()
+
+    def testParitialSync(self):
+        s = shelve.open("test.db",protocol=2,writeback=True)
+        self.assert_(s.cache is not None)
+        s['a'] = 1
+        self.assertEquals(s.cache['a'],1)
+        s.writeback = False
+        s['a'] = 2
+        self.assertEquals(s.cache['a'],1)
+        del s.cache['a']
+        self.assertFalse('a' in s.cache)
+        s.close()
+        s = shelve.open("test.db",protocol=2)
+        self.assertEquals(s['a'],2)
+        s.close()
+
 class TestP(unittest.TestCase):
 
     def setUp(self):
