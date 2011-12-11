@@ -29,7 +29,8 @@ class MudProtocol(basic.LineReceiver):
     def cancel_command(self):
         if self.d:
             self.sendMessage("Stopping " + self.doing)
-            self.d.cancel()
+            if self.d.active():
+                self.d.cancel()
             self.doing = ""
             self.d = None
 
