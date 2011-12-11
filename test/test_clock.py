@@ -3,8 +3,8 @@
 from twisted.trial import unittest
 from twisted.internet import task
 
-from ..clock import Clock
-from ..persist import Persistent, getP
+from ..clock import Clock, TestableClock
+from ..persist import Persistent, getP, P
 
 class X(Persistent):
 
@@ -20,6 +20,9 @@ class X(Persistent):
 
 
 class TestClock(unittest.TestCase):
+
+    def setUp(self):
+        P.instances = {}
 
     def testInit(self):
         c = Clock()
@@ -85,6 +88,38 @@ class TestClock(unittest.TestCase):
         c.cancel(1)
         self.assertFalse(1 in c.events)
         testClock.advance(10)
+        self.assertFalse(x.called)
+
+
+class TestTestableClock(unittest.TestCase):
+
+    def setUp(self):
+        P.instances = {}
+
+    def testAddEvent(self):
+        c = TestableClock()
+        x = X()
+        x.id = 1
+        self.assertFalse(x.called)
+        eventId = c.addEvent(10,x,'f')
+        self.assertEquals(eventId,1)
+        self.assertEquals(c.events[1],(0,10,getP(x),'f',(),{}))
+        self.assert_(1 in c.events)
+        c.advance(10)
+        self.assertFalse(1 in c.events)
+        self.assert_(x.called)
+
+    def testCancel(self):
+        c = TestableClock()
+        x = X()
+        x.id = 1
+        self.assertFalse(x.called)
+        eventId = c.addEvent(10,x,'f')
+        self.assertEquals(eventId,1)
+        self.assertEquals(c.events[1],(0,10,getP(x),'f',(),{}))
+        c.cancel(1)
+        self.assertFalse(1 in c.events)
+        c.advance(10)
         self.assertFalse(x.called)
 
 

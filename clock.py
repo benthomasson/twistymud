@@ -3,6 +3,7 @@
 from .persist import Persistent,getP,deref
 
 from twisted.internet import reactor
+from twisted.internet import task
 
 class Clock(Persistent):
 
@@ -33,6 +34,7 @@ class Clock(Persistent):
         if eventId not in self.events:
             return
         start,end,p,name,args,kwargs = self.events[eventId]
+        del self.events[eventId]
         o = deref(p)
         if o and hasattr(o,name):
             func = getattr(o,name)
@@ -41,4 +43,17 @@ class Clock(Persistent):
     def cancel(self,eventId):
         if eventId in self.events:
             del self.events[eventId]
+
+
+class TestableClock(Clock):
+
+    def __init__(self):
+        Clock.__init__(self)
+        self.clock = task.Clock()
+
+    def advance(self,time):
+        self.clock.advance(time)
+
+    def callLater(self,time,function,*args,**kwargs):
+        return self.clock.callLater(time,function,*args,**kwargs)
 
