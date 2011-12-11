@@ -5,6 +5,12 @@ import sys
 import os
 from twistymud.coroutine import coroutine,step,finish
 
+def persist(o):
+    if P.persistence:
+        P.persistence.persist(o)
+    else:
+        raise Exception("No persistence installed")
+
 def getP(o):
     if None is o:
         return P.null
