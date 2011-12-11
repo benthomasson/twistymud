@@ -1,3 +1,4 @@
 *.pyc
 *.log
 _trial_marker
+_trial_temp/
