@@ -1,6 +1,5 @@
 
-
-import unittest
+from twisted.trial import unittest
 
 from ..message import Channel
 

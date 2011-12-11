@@ -1,4 +1,4 @@
-import unittest
+from twisted.trial import unittest
 import os
 import shelve
 from twistymud.persist import P, getP, deref, Persistent
