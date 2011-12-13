@@ -6,48 +6,50 @@ from twisted.protocols import basic
 
 import time
 
+from twistymud.clock import Clock
+from twistymud.message import Channel
+from twistymud.models import Character
 
 class MudProtocol(basic.LineReceiver):
 
     clients = []
+    nextId = 0
 
     def __init__(self):
         self.clients.append(self)
+        self.id = MudProtocol.nextId
+        MudProtocol.nextId+=1
         self.d = None
         self.doing = ""
+        self.channel = Mud.getInstance().channel
+        self.channel.addListener(self)
+        self.character = Character()
+        self.character.addListener(self)
 
-    def command_quit(self,line):
+    def command_quit(self,*args):
         self.sendLine("Goodbye.")
         self.transport.loseConnection()
 
-    def command_do(self,line):
-        return self.doSomethingLater()
-
-    def command_stop(self,line):
-        self.cancel_command()
-
-    def cancel_command(self):
-        if self.d:
-            self.sendMessage("Stopping " + self.doing)
-            if self.d.active():
-                self.d.cancel()
-            self.doing = ""
-            self.d = None
-
-
     def lineReceived(self, line):
+        self.execute_command(line)
+
+    def execute_command(self,line):
         command,_, rest = line.partition(" ")
-        if hasattr(self,"command_{0}".format(command)):
-            return getattr(self,"command_{0}".format(command))(line)
+        command_fn = "command_{0}".format(command)
+        args = line.split(" ")
+        if hasattr(self,command_fn):
+            return getattr(self,command_fn)(*args)
+        elif hasattr(self.character,command_fn):
+            return getattr(self.character,command_fn)(*args)
         else:
-            for client in self.clients:
-                if client == self:
-                    self.sendMessage("You said: " + line)
-                else:
-                    client.sendMessage("They said: " + line)
+            self.sendMessage("You said: " + line)
+            self.channel.sendMessage('say',message="They said: " + line,_exclude=[self])
 
     def callLater(self,time,function,*args,**kwargs):
-        return reactor.callLater(time,function,*args,**kwargs)
+        return Clock.getInstance().callLater(time,function,*args,**kwargs)
+
+    def receiveMessage(self,message):
+        self.sendMessage(message.dict['message'])
 
     def sendMessage(self,string):
         self.sendLine(string)
@@ -57,34 +59,38 @@ class MudProtocol(basic.LineReceiver):
         self.transport.write(string)
 
     def prompt(self):
-        if self.doing:
-            self.sendString("({0})>".format(self.doing))
+        if self.character.task:
+            self.sendString("({0})>".format(self.character.task))
         else:
             self.sendString(">")
 
     def printTime(self):
         self.sendMessage(time.strftime("%H:%M:%S"))
 
-    def doSomethingLater(self):
-        self.cancel_command()
-        self.doing = "work"
-        self.d = self.callLater(10,self.finishSomething)
-        self.sendMessage("Starting work")
-
-    def finishSomething(self):
-        self.doing = ""
-        self.sendMessage("Finished work")
 
 class MudServerFactory(protocol.ServerFactory):
     protocol = MudProtocol
 
-def printTime():
-    for client in MudProtocol.clients:
-        client.printTime()
-    d = deferLater(reactor,1,printTime)
+class Mud(object):
+
+    instance = None
+
+    @classmethod
+    def getInstance(cls,*args,**kwargs):
+        if not cls.instance:
+            cls.instance = cls(*args,**kwargs)
+        return cls.instance
+
+    def __init__(self,port=5001):
+        self.clock = Clock.getInstance()
+        self.channel = Channel()
+        self.port = port
+
+    def run(self):
+        self.clock.start()
+        reactor.listenTCP(self.port, MudServerFactory())
+        reactor.run()
 
 if __name__ == "__main__":
-    port = 5001
-    reactor.listenTCP(port, MudServerFactory())
-    reactor.callLater(5,printTime)
-    reactor.run()
+    mud = Mud.getInstance()
+    mud.run()

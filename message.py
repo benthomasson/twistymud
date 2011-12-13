@@ -18,7 +18,7 @@ class Message(object):
         return self.__str__()
 
 class Channel(object):
-    
+
     def __init__(self):
         self.listeners = {}
 
@@ -27,7 +27,7 @@ class Channel(object):
 
     def removeListener(self,listener):
         if listener.id in self.listeners:
-            del self.listeners[listener.id] 
+            del self.listeners[listener.id]
 
     def sendMessage(self,type,**kwargs):
         message = Message(type,**kwargs)
@@ -43,3 +43,8 @@ class Channel(object):
             elif not listener:
                 del self.listeners[id]
 
+
+class RepeaterMixin(object):
+
+    def receiveMessage(self,message):
+        self._sendMessage(message)

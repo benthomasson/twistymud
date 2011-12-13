@@ -7,6 +7,14 @@ from twisted.internet import task
 
 class Clock(Persistent):
 
+    instance = None
+
+    @classmethod
+    def getInstance(cls,*args,**kwargs):
+        if not cls.instance:
+            cls.instance = cls(*args,**kwargs)
+        return cls.instance
+
     def __init__(self):
         Persistent.__init__(self)
         self.events = {}
