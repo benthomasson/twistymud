@@ -19,6 +19,13 @@ def persist(o):
     else:
         raise Exception("No persistence installed")
 
+def getOrCreate(id,klass,*args,**kwargs):
+    global persistence
+    if persistence:
+        return persistence.getOrCreate(id,klass,*args,**kwargs)
+    else:
+        raise Exception("No persistence installed")
+
 def getP(o):
     if None is o:
         return P.null
