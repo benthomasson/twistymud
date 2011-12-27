@@ -15,12 +15,14 @@ class Clock(Persistent):
             cls.instance = cls(*args,**kwargs)
         return cls.instance
 
-    def __init__(self):
+    def __init__(self,id=None):
         Persistent.__init__(self)
+        self.id = id
         self.events = {}
         self.time = 0L
         self.nextEventId=1
         self.stopped = False
+        self.debug = False
 
     def callLater(self,time,function,*args,**kwargs):
         return reactor.callLater(time,function,*args,**kwargs)
@@ -34,6 +36,8 @@ class Clock(Persistent):
 
     def tick(self):
         self.time+=1
+        if self.debug:
+            print self.time
         self.callLater(1,self.tick)
 
     def addEvent(self,time,o,name,*args,**kwargs):
@@ -62,7 +66,6 @@ class Clock(Persistent):
     def __setstate__(self,d):
         self.__dict__.update(d)
         self.restartEvents()
-        self.start()
 
     def restartEvents(self):
         for (eventId, (scheduleTime, eventTime, p, names, args, kwargs)) in self.events.iteritems():
@@ -93,4 +96,3 @@ class TestableClock(Clock):
         self.__dict__.update(d)
         self.clock = task.Clock()
         self.restartEvents()
-        self.start()
