@@ -2,6 +2,7 @@ from twisted.trial import unittest
 import os
 import shelve
 from twistymud.persist import P, getP, deref, Persistent
+import twistymud.persist 
 
 class TestShelve(unittest.TestCase):
 
@@ -39,11 +40,24 @@ class TestShelve(unittest.TestCase):
         self.assertEquals(s['a'],2)
         s.close()
 
+class TestModule(unittest.TestCase):
+
+    def setUp(self):
+        twistymud.persist.reset()
+
+    def test_reset(self):
+        self.assertEquals(twistymud.persist.P.instances,{})
+        o = Persistent()
+        o.id = 1
+        p = P(o)
+        self.assertEquals(twistymud.persist.P.instances,{1:p})
+        twistymud.persist.reset()
+        self.assertEquals(twistymud.persist.P.instances,{})
+
 class TestP(unittest.TestCase):
 
     def setUp(self):
-        P.instances = {}
-        P.persistence = None
+        twistymud.persist.reset()
 
     def testNull(self):
         p = P()

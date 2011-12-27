@@ -5,9 +5,17 @@ import sys
 import os
 from twistymud.coroutine import coroutine,step,finish
 
+persistence = None
+
+def reset():
+    global persistence
+    persistence = None
+    P.instances = {}
+
 def persist(o):
-    if P.persistence:
-        P.persistence.persist(o)
+    global persistence
+    if persistence:
+        persistence.persist(o)
     else:
         raise Exception("No persistence installed")
 
@@ -38,7 +46,6 @@ class P(object):
     >>> x()
     """
 
-    persistence = None
     instances = {}
 
     __slots__ = ['id','ref']
@@ -59,6 +66,7 @@ class P(object):
         return self.deref()
 
     def deref(self):
+        global persistence
         if self.ref and not hasattr(self.ref,'deleted'):
             return self.ref
         if self.ref and not self.ref.deleted:
@@ -67,8 +75,8 @@ class P(object):
             return None
         if not self.id: return None
         try:
-            if P.persistence:
-                self.ref = P.persistence.get(self.id)
+            if persistence:
+                self.ref = persistence.get(self.id)
                 return self.ref
             else:
                 return None
@@ -82,9 +90,10 @@ class P(object):
         return self() != None
 
     def delete(self):
+        global persistence
         del P.instances[self.id]
-        if P.persistence:
-            P.persistence.delete(self)
+        if persistence:
+            persistence.delete(self)
         self.id = None
         self.ref = None
 
