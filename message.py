@@ -19,8 +19,9 @@ class Message(object):
 
 class Channel(object):
 
-    def __init__(self):
+    def __init__(self,id=None):
         self.listeners = {}
+        self.id = id
 
     def addListener(self,listener):
         self.listeners[listener.id] = getP(listener)
