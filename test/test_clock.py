@@ -195,6 +195,7 @@ class TestPersist(unittest.TestCase):
         twistymud.persist.persistence.syncAll()
         twistymud.persist.persistence.close()
         reset()
+        self.c.stop()
         self.c = None
         clockP.clear()
         xP.clear()

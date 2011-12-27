@@ -20,12 +20,17 @@ class Clock(Persistent):
         self.events = {}
         self.time = 0L
         self.nextEventId=1
+        self.stopped = False
 
     def callLater(self,time,function,*args,**kwargs):
         return reactor.callLater(time,function,*args,**kwargs)
 
     def start(self):
         self.callLater(1,self.tick)
+        self.stopped = False
+
+    def stop(self):
+        self.stopped = True
 
     def tick(self):
         self.time+=1
@@ -39,6 +44,8 @@ class Clock(Persistent):
         return eventId
 
     def callEvent(self,eventId):
+        if self.stopped:
+            return
         if eventId not in self.events:
             return
         start,end,p,name,args,kwargs = self.events[eventId]
@@ -60,6 +67,8 @@ class Clock(Persistent):
     def restartEvents(self):
         for (eventId, (scheduleTime, eventTime, p, names, args, kwargs)) in self.events.iteritems():
             time = eventTime - self.time
+            if time < 0:
+                time = 0
             self.callLater(time,self.callEvent,eventId)
 
 class TestableClock(Clock):
