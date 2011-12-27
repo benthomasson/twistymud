@@ -89,6 +89,9 @@ class P(object):
     def __nonzero__(self):
         return self() != None
 
+    def clear(self):
+        self.ref = None
+
     def delete(self):
         global persistence
         del P.instances[self.id]
@@ -169,10 +172,10 @@ class Persistence(object):
         return False
 
     def syncAll(self):
-        if not self.writeBackIterator:
-            self.writeBackIterator = self.partialSync()
-        finish(self.writeBackIterator)
-        #self.db.dict.sync()
+        #if not self.writeBackIterator:
+        #    self.writeBackIterator = self.partialSync()
+        #finish(self.writeBackIterator)
+        self.db.dict.sync()
 
     @coroutine
     def partialSync(self):

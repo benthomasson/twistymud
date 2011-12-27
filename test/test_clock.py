@@ -4,7 +4,9 @@ from twisted.trial import unittest
 from twisted.internet import task
 
 from ..clock import Clock, TestableClock
-from ..persist import Persistent, getP, P
+from ..persist import Persistent, getP, deref, reset, persist, MockPersistence, Persistence
+import twistymud.persist
+import os
 
 class X(Persistent):
 
@@ -22,7 +24,7 @@ class X(Persistent):
 class TestClock(unittest.TestCase):
 
     def setUp(self):
-        P.instances = {}
+        reset()
 
     def testInit(self):
         c = Clock()
@@ -94,7 +96,7 @@ class TestClock(unittest.TestCase):
 class TestTestableClock(unittest.TestCase):
 
     def setUp(self):
-        P.instances = {}
+        reset()
 
     def testAddEvent(self):
         c = TestableClock()
@@ -122,4 +124,99 @@ class TestTestableClock(unittest.TestCase):
         c.advance(10)
         self.assertFalse(x.called)
 
+class TestPersist(unittest.TestCase):
+
+    def setUp(self):
+        reset()
+        if os.path.exists("test.db"): os.remove("test.db")
+        if os.path.exists("test.db.db"): os.remove("test.db.db")
+
+
+    def buildClock(self):
+        self.c = TestableClock()
+        self.c.id = 'clock'
+
+
+    def testPersistMock(self):
+        twistymud.persist.persistence = MockPersistence()
+        self.buildClock()
+        self.assertEquals(self.c.id,'clock')
+        self.assertEquals(self.c.time,0)
+        self.c.start()
+        self.c.advance(10)
+        self.assertEquals(self.c.time,10)
+        p = getP(self.c)
+        persist(self.c)
+        self.c = None
+        self.c = deref(p)
+        self.assertEquals(self.c.id,'clock')
+        self.assertEquals(self.c.time,10)
+        self.c.advance(10)
+        self.assertEquals(self.c.time,20)
+
+    def testPersist(self):
+        twistymud.persist.persistence = Persistence("test.db")
+        self.buildClock()
+        self.assertEquals(self.c.id,'clock')
+        self.assertEquals(self.c.time,0)
+        self.c.start()
+        self.c.advance(10)
+        self.assertEquals(self.c.time,10)
+        p = getP(self.c)
+        persist(self.c)
+        self.assertEquals(twistymud.persist.P.instances,{'clock':self.c})
+        twistymud.persist.persistence.syncAll()
+        reset()
+        self.c = None
+        p.clear()
+        self.assertEquals(twistymud.persist.persistence,None)
+        self.assertEquals(twistymud.persist.P.instances,{})
+        twistymud.persist.persistence = Persistence("test.db")
+        self.c = deref(p)
+        self.assertEquals(self.c.id,'clock')
+        self.assertEquals(self.c.time,10)
+        self.c.advance(10)
+        self.assertEquals(self.c.time,20)
+
+    def testPersistEvents(self):
+        twistymud.persist.persistence = Persistence("test.db")
+        self.buildClock()
+        self.c.start()
+        persist(self.c)
+        clockP = getP(self.c)
+        x = X()
+        memId = id(x)
+        persist(x)
+        xP = getP(x)
+        eventId = self.c.addEvent(10,x,'f')
+        self.assertEquals(x.id,'1')
+        self.assertFalse(x.called)
+        self.assertEquals(twistymud.persist.P.instances,{'clock':self.c,'1':x})
+        twistymud.persist.persistence.syncAll()
+        twistymud.persist.persistence.close()
+        reset()
+        self.c = None
+        clockP.clear()
+        xP.clear()
+        x = None
+        self.assertEquals(twistymud.persist.persistence,None)
+        self.assertEquals(twistymud.persist.P.instances,{})
+        twistymud.persist.persistence = Persistence("test.db")
+        self.c = deref(clockP)
+        x = deref(xP)
+        self.assertEquals(x.id,'1')
+        self.assert_(self.c.events)
+        self.assert_(self.c.events[1])
+        self.assertEquals(self.c.events[1][0],0)
+        self.assertEquals(self.c.events[1][1],10)
+        self.assertEquals(self.c.events[1][2],x)
+        self.assertEquals(self.c.events[1][3],'f')
+        self.assertEquals(self.c.events[1][4],())
+        self.assertEquals(self.c.events[1][5],{})
+        self.assertFalse(x.called)
+        self.assertNotEquals(id(x),memId)
+        self.c.advance(10)
+        x = deref(xP)
+        self.assertNotEquals(id(x),memId)
+        self.assert_(x.called)
 

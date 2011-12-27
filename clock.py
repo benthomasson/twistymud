@@ -52,6 +52,15 @@ class Clock(Persistent):
         if eventId in self.events:
             del self.events[eventId]
 
+    def __setstate__(self,d):
+        self.__dict__.update(d)
+        self.restartEvents()
+        self.start()
+
+    def restartEvents(self):
+        for (eventId, (scheduleTime, eventTime, p, names, args, kwargs)) in self.events.iteritems():
+            time = eventTime - self.time
+            self.callLater(time,self.callEvent,eventId)
 
 class TestableClock(Clock):
 
@@ -60,8 +69,19 @@ class TestableClock(Clock):
         self.clock = task.Clock()
 
     def advance(self,time):
-        self.clock.advance(time)
+        for i in xrange(time):
+            self.clock.advance(1)
 
     def callLater(self,time,function,*args,**kwargs):
         return self.clock.callLater(time,function,*args,**kwargs)
 
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d['clock']
+        return d
+
+    def __setstate__(self,d):
+        self.__dict__.update(d)
+        self.clock = task.Clock()
+        self.restartEvents()
+        self.start()

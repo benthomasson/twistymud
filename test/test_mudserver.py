@@ -54,6 +54,6 @@ class RemoteCalculationTestCase(unittest.TestCase):
 
     def test_do(self):
         self.assertCommand('do\r\n', "Starting work\r\n(work)>")
-        self.clock.advance(10)
+        self.clock.advance(20)
         self.assertEqual(self.tr.value(), 'Starting work\r\n(work)>Finished work\r\n>')
 
