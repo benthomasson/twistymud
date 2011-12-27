@@ -10,6 +10,9 @@ from twistymud.clock import Clock
 from twistymud.message import Channel
 from twistymud.models import Character
 
+from twistymud.persist import Persistence, persist, getOrCreate
+import twistymud.persist
+
 class MudProtocol(basic.LineReceiver):
 
     clients = []
@@ -25,6 +28,7 @@ class MudProtocol(basic.LineReceiver):
         self.channel.addListener(self)
         self.character = Character()
         self.character.addListener(self)
+        persist(self.character)
 
     def command_quit(self,*args):
         self.sendLine("Goodbye.")
@@ -82,14 +86,23 @@ class Mud(object):
         return cls.instance
 
     def __init__(self,port=5001):
-        self.clock = Clock.getInstance()
-        self.channel = Channel()
+        twistymud.persist.persistence = Persistence("server.db")
+        self.clock = getOrCreate('clock',Clock)
+        self.clock.debug = True
+        self.channel = getOrCreate('channel',Channel)
         self.port = port
 
     def run(self):
         self.clock.start()
         reactor.listenTCP(self.port, MudServerFactory())
-        reactor.run()
+        try:
+            print "Running on {0}".format(self.port)
+            reactor.run()
+        finally:
+            print "\Persisting..."
+            twistymud.persist.persistence.syncAll()
+            twistymud.persist.persistence.close()
+            print "\nDone"
 
 if __name__ == "__main__":
     mud = Mud.getInstance()
