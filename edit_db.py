@@ -71,6 +71,10 @@ class EditDBObject(cmd.Cmd):
 
     def emptyline(self):
         for name, value in self.obj.__dict__.iteritems():
+            try:
+                value = repr(value)
+            except Exception:
+                value = "ERROR LOADING VALUE!"
             print "{0:20} {1}".format(name,value)
 
     def completenames(self,current,full,*ignore):

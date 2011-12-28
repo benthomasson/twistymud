@@ -40,14 +40,13 @@ class MudProtocol(basic.LineReceiver):
     def execute_command(self,line):
         command,_, rest = line.partition(" ")
         command_fn = "command_{0}".format(command)
-        args = line.split(" ")
+        args = rest.split(" ")
         if hasattr(self,command_fn):
             return getattr(self,command_fn)(*args)
         elif hasattr(self.character,command_fn):
             return getattr(self.character,command_fn)(*args)
         else:
-            self.sendMessage("You said: " + line)
-            self.channel.sendMessage('say',message="They said: " + line,_exclude=[self])
+            return self.character.command_say(*args)
 
     def receiveMessage(self,message):
         self.sendMessage(message.dict['message'])

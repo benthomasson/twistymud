@@ -2,6 +2,7 @@
 from .persist import Persistent, NULL
 from .clock import Clock
 from .message import Channel, RepeaterMixin
+import pickle
 
 
 class Sim(Persistent):
@@ -29,6 +30,8 @@ class Character(RepeaterMixin,Channel,Sim):
     location = NULL
     name = "someone"
     attributes = ['character']
+    deferred = None
+    task = None
 
     def __init__(self,id=None):
         Channel.__init__(self)
@@ -53,7 +56,16 @@ class Character(RepeaterMixin,Channel,Sim):
         self {0}
         task {1}
         id {2}
-        """.format(id(self),self.task,self.id))
+        listeners {3}
+        """.format(id(self),self.task,self.id,self.listeners))
+
+    def command_pickle(self,*args):
+        self.sendMessage("pickle",message=pickle.dumps(self))
+
+    def command_say(self,*args):
+        line = " ".join(args)
+        self.sendMessage("say",message="You said: " + line)
+        #self.channel.sendMessage('say',message="They said: " + line,_exclude=[self])
 
     def cancel_command(self):
         if self.d:

@@ -36,8 +36,8 @@ class Channel(object):
 
     def _sendMessage(self,message):
         _exclude = message.dict['_exclude']
-        for listener in self.listeners.copy().values():
-            id = listener.id
+        for id in self.listeners.copy().keys():
+            listener = self.listeners[id]
             listener = deref(listener)
             if listener and listener not in _exclude:
                 listener.receiveMessage(message)
