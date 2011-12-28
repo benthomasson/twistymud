@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+from twistymud.settings import DB_NAME, PORT
+
 from twisted.internet import reactor, protocol
 from twisted.internet.task import deferLater
 from twisted.protocols import basic
@@ -10,18 +12,17 @@ from twistymud.clock import Clock
 from twistymud.message import Channel
 from twistymud.models import Character
 
-from twistymud.persist import Persistence, persist, getOrCreate
+from twistymud.persist import Persistence, persist, getOrCreate, makeTemporary
 import twistymud.persist
 
 class MudProtocol(basic.LineReceiver):
 
     clients = []
-    nextId = 0
 
     def __init__(self):
         self.clients.append(self)
-        self.id = MudProtocol.nextId
-        MudProtocol.nextId+=1
+        self.id = None
+        makeTemporary(self)
         self.d = None
         self.doing = ""
         self.channel = Mud.getInstance().channel
@@ -85,8 +86,8 @@ class Mud(object):
             cls.instance = cls(*args,**kwargs)
         return cls.instance
 
-    def __init__(self,port=5001):
-        twistymud.persist.persistence = Persistence("server.db")
+    def __init__(self,port=PORT):
+        twistymud.persist.persistence = Persistence(DB_NAME)
         self.clock = getOrCreate('clock',Clock)
         self.clock.debug = True
         self.channel = getOrCreate('channel',Channel)
