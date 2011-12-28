@@ -2,13 +2,15 @@ from twistymud.mudserver import MudServerFactory
 from twisted.trial import unittest
 from twisted.internet import task
 from twisted.test import proto_helpers
-from ..persist import P
+from ..persist import reset, MockPersistence
+import twistymud.persist
 
 
 
 class RemoteCalculationTestCase(unittest.TestCase):
     def setUp(self):
-        P.instances = {}
+        reset()
+        twistymud.persist.persistence = MockPersistence()
         self.clock = task.Clock()
         factory = MudServerFactory()
         self.proto = factory.buildProtocol(('127.0.0.1', 0))
