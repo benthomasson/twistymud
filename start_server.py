@@ -1,6 +1,6 @@
+#!/usr/bin/env python
 
-
-from twistymud.server import Mud
+from twistymud.mudserver import Mud
 
 if __name__ == "__main__":
     mud = Mud.getInstance()

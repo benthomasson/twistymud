@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 
 from twistymud.settings import DB_NAME, PORT
 
@@ -66,7 +65,6 @@ class MudProtocol(basic.LineReceiver):
         else:
             self.sendString(">")
 
-
 class MudServerFactory(protocol.ServerFactory):
     protocol = MudProtocol
 
@@ -99,6 +97,3 @@ class Mud(object):
             twistymud.persist.persistence.close()
             print "\nDone"
 
-if __name__ == "__main__":
-    mud = Mud.getInstance()
-    mud.run()
