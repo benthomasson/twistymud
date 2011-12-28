@@ -1,4 +1,5 @@
 
+from twistymud.settings import TICK_TIME
 
 from .persist import Persistent,getP,deref
 
@@ -28,7 +29,7 @@ class Clock(Persistent):
         return reactor.callLater(time,function,*args,**kwargs)
 
     def start(self):
-        self.callLater(1,self.tick)
+        self.callLater(TICK_TIME,self.tick)
         self.stopped = False
 
     def stop(self):
@@ -38,7 +39,7 @@ class Clock(Persistent):
         self.time+=1
         if self.debug:
             print self.time
-        self.callLater(1,self.tick)
+        self.callLater(TICK_TIME,self.tick)
 
     def addEvent(self,time,o,name,*args,**kwargs):
         eventId = self.nextEventId
