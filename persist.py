@@ -130,6 +130,7 @@ class P(object):
         return "P" + repr(self())
 
 P.null = P()
+NULL = P.null
 
 class Persistence(object):
 
@@ -240,7 +241,7 @@ class MockPersistence(Persistence):
 
 class Persistent(object):
 
-    def __init__(self):
-        self.id = None
+    def __init__(self,id=None):
+        self.id = id
         self.deleted = False
 

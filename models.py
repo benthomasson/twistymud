@@ -1,10 +1,24 @@
 
-from .persist import Persistent
+from .persist import Persistent, NULL
 from .clock import Clock
 from .message import Channel, RepeaterMixin
 
 
 class Sim(Persistent):
+
+    attributes = []
+    name = "thing"
+    locationSlot = None
+    id = None
+    description = "something"
+    detail = "maybe it's nothing"
+    article = "a"
+    attributes = []
+    name = 'thing'
+    location = NULL
+
+    def __init__(self,id=None):
+        Persistent.__init__(self,id)
 
     def callLater(self, time, function, *args,**kwargs):
         return Clock.getInstance().callLater(time, function, *args, **kwargs)
@@ -12,10 +26,15 @@ class Sim(Persistent):
 
 class Character(RepeaterMixin,Channel,Sim):
 
-    def __init__(self):
+    location = NULL
+    name = "someone"
+    attributes = ['character']
+
+    def __init__(self,id=None):
         Channel.__init__(self)
         self.task = None
         self.d = None
+        self.id = id
 
     def doSomethingLater(self):
         self.cancel_command()
@@ -49,5 +68,6 @@ class Character(RepeaterMixin,Channel,Sim):
         self.sendMessage("task",message="Finished work")
 
 class Item(Sim):
-    pass
+
+    location = NULL
 
