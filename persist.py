@@ -19,6 +19,13 @@ def persist(o):
     else:
         raise Exception("No persistence installed")
 
+def makeTemporary(o):
+    global persistence
+    if persistence:
+        persistence.persist(o)
+    else:
+        raise Exception("No persistence installed")
+
 def getOrCreate(id,klass,*args,**kwargs):
     global persistence
     if persistence:
@@ -144,6 +151,13 @@ class Persistence(object):
         if not o.id:
             o.id = "%x" % self.getNextId()
         self.db[o.id] = o
+        return o
+
+    def makeTemporary(self,o):
+        if not o.id:
+            o.id = "%x" % self.getNextId()
+        if o.id in self.db:
+            del self.db[o.id]
         return o
 
     def get(self,id):
