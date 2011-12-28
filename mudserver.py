@@ -69,9 +69,6 @@ class MudProtocol(basic.LineReceiver):
         else:
             self.sendString(">")
 
-    def printTime(self):
-        self.sendMessage(time.strftime("%H:%M:%S"))
-
 
 class MudServerFactory(protocol.ServerFactory):
     protocol = MudProtocol
