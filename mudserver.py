@@ -50,9 +50,6 @@ class MudProtocol(basic.LineReceiver):
             self.sendMessage("You said: " + line)
             self.channel.sendMessage('say',message="They said: " + line,_exclude=[self])
 
-    def callLater(self,time,function,*args,**kwargs):
-        return Clock.getInstance().callLater(time,function,*args,**kwargs)
-
     def receiveMessage(self,message):
         self.sendMessage(message.dict['message'])
 
