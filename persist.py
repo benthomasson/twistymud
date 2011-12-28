@@ -22,7 +22,7 @@ def persist(o):
 def makeTemporary(o):
     global persistence
     if persistence:
-        persistence.persist(o)
+        persistence.makeTemporary(o)
     else:
         raise Exception("No persistence installed")
 
@@ -33,11 +33,15 @@ def getOrCreate(id,klass,*args,**kwargs):
     else:
         raise Exception("No persistence installed")
 
-def getP(o):
+def getP(o,temp=False):
     if None is o:
         return P.null
     if o.id in P.instances:
         return P.instances[o.id]
+    elif temp:
+        p = TempP(o)
+        P.instances[o.id] = p
+        return p
     else:
         p = P(o)
         P.instances[o.id] = p
@@ -124,13 +128,43 @@ class P(object):
         return state
 
     def __str__(self):
-        return "P" + str(self())
+        try:
+            s = str(self())
+        except Exception:
+            s = "???"
+        return "P" + s
 
     def __repr__(self):
-        return "P" + repr(self())
+        try:
+            s = repr(self())
+        except Exception:
+            s = "???"
+        return "P" + s
 
 P.null = P()
 NULL = P.null
+
+
+class TempP(P):
+
+    def deref(self):
+        if self.ref and not hasattr(self.ref,'deleted'):
+            return self.ref
+        if self.ref and not self.ref.deleted:
+            return self.ref
+        return None
+
+    def delete(self):
+        del P.instances[self.id]
+        self.id = None
+        self.ref = None
+
+    def __setstate__(self,state):
+        self.id = None
+        self.ref = None
+
+    def __getstate__(self):
+        return {}
 
 class Persistence(object):
 
@@ -152,6 +186,7 @@ class Persistence(object):
         if not o.id:
             o.id = "%x" % self.getNextId()
         self.db[o.id] = o
+        getP(o)
         return o
 
     def makeTemporary(self,o):
@@ -159,6 +194,7 @@ class Persistence(object):
             o.id = "%x" % self.getNextId()
         if o.id in self.db:
             del self.db[o.id]
+        getP(o,temp=True)
         return o
 
     def get(self,id):
