@@ -77,6 +77,11 @@ class Clock(Persistent):
 
 class TestableClock(Clock):
 
+    @classmethod
+    def makeTestClock(cls):
+        Clock.instance = TestableClock()
+        return Clock.instance
+
     def __init__(self):
         Clock.__init__(self)
         self.clock = task.Clock()
