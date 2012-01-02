@@ -3,7 +3,8 @@ from twisted.trial import unittest
 
 from twistymud.persist import P, getP, deref, Persistent, makeTemporary, reset, MockPersistence
 import twistymud.persist
-from twistymud.models import Item, Character
+from twistymud.character import Character
+from twistymud.item import Item
 from twistymud.container import Container,SlottedContainer
 from twistymud.exceptions import GameException
 
