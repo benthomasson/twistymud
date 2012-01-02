@@ -9,7 +9,7 @@ import time
 
 from twistymud.clock import Clock
 from twistymud.message import Channel
-from twistymud.models import Character
+from twistymud.character import Character
 
 from twistymud.persist import Persistence, persist, getOrCreate, makeTemporary
 import twistymud.persist
@@ -46,7 +46,7 @@ class MudProtocol(basic.LineReceiver):
         elif hasattr(self.character,command_fn):
             return getattr(self.character,command_fn)(*args)
         else:
-            return self.character.command_say(*args)
+            return self.character.command_say(*[command] + args)
 
     def receiveMessage(self,message):
         self.sendMessage(message.dict['message'])
