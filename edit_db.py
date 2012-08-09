@@ -5,8 +5,8 @@ from twistymud.settings import DB_NAME
 import readline
 import cmd
 
-from twistymud.persist import Persistence
-import twistymud.persist
+from persist import Persistence
+import persist
 
 
 def parseBool(b):
@@ -23,8 +23,8 @@ class EditDb(cmd.Cmd):
 
     def default(self,line):
         line = line.strip()
-        if line in twistymud.persist.persistence.db:
-            o =  twistymud.persist.persistence.db[line]
+        if line in persist.persistence.db:
+            o =  persist.persistence.db[line]
             if hasattr(o,'__dict__'):
                 eo = EditDBObject()
                 eo.obj = o
@@ -48,9 +48,9 @@ class EditDb(cmd.Cmd):
 
     def do_del(self,line):
         name = line.strip()
-        if name in twistymud.persist.persistence.db:
-            del twistymud.persist.persistence.db[name]
-            self.keys = sorted(twistymud.persist.persistence.db.keys())
+        if name in persist.persistence.db:
+            del persist.persistence.db[name]
+            self.keys = sorted(persist.persistence.db.keys())
             print "Deleted {0}".format(name)
         else:
             print "No objects named {0}".format(name)
@@ -58,10 +58,10 @@ class EditDb(cmd.Cmd):
     def do_del_error(self,line):
         for name in self.keys:
             try:
-                twistymud.persist.persistence.db[name]
+                persist.persistence.db[name]
             except Exception:
-                del twistymud.persist.persistence.db[name]
-        self.keys = sorted(twistymud.persist.persistence.db.keys())
+                del persist.persistence.db[name]
+        self.keys = sorted(persist.persistence.db.keys())
 
 
 class EditDBObject(cmd.Cmd):
@@ -124,35 +124,35 @@ class EditDBValue(cmd.Cmd):
         raise KeyboardInterrupt()
 
     def emptyline(self):
-        print twistymud.persist.persistence.db[self.name]
+        print persist.persistence.db[self.name]
 
     def do_seti(self,line):
-        twistymud.persist.persistence.db[self.name]=int(line)
+        persist.persistence.db[self.name]=int(line)
 
     def do_setl(self,line):
-        twistymud.persist.persistence.db[self.name]=long(line)
+        persist.persistence.db[self.name]=long(line)
 
     def do_setf(self,line):
-        twistymud.persist.persistence.db[self.name]=float(line)
+        persist.persistence.db[self.name]=float(line)
 
     def do_sets(self,line):
-        twistymud.persist.persistence.db[self.name]=line
+        persist.persistence.db[self.name]=line
 
     def do_setb(self,line):
-        twistymud.persist.persistence.db[self.name]=parseBool(line)
+        persist.persistence.db[self.name]=parseBool(line)
 
 def main():
-    twistymud.persist.persistence = Persistence(DB_NAME)
+    persist.persistence = Persistence(DB_NAME)
     edit = EditDb()
     edit.prompt = DB_NAME + ">"
-    edit.keys = sorted(twistymud.persist.persistence.db.keys())
+    edit.keys = sorted(persist.persistence.db.keys())
     try:
         edit.cmdloop('Edit the DB {0}'.format(DB_NAME))
     except KeyboardInterrupt:
         print "\nDone editing db {0}".format(DB_NAME)
     print "\Persisting..."
-    twistymud.persist.persistence.syncAll()
-    twistymud.persist.persistence.close()
+    persist.persistence.syncAll()
+    persist.persistence.close()
     print "\nDone"
 
 if __name__ == "__main__":
