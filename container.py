@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import unittest
-from twistymud.persist import P,getP
+from persist import P, getP
 from twistymud.exceptions import GameException
 
 class Container(object):

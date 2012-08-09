@@ -1,7 +1,7 @@
 
 
 
-from .persist import Persistent, NULL
+from persist import Persistent, NULL
 from .clock import Clock
 from .message import Channel, RepeaterMixin
 import pickle

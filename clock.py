@@ -1,7 +1,7 @@
 
 from twistymud.settings import TICK_TIME
 
-from .persist import Persistent,getP,deref
+from persist import Persistent, getP
 
 from twisted.internet import reactor
 from twisted.internet import task
@@ -55,7 +55,7 @@ class Clock(Persistent):
             return
         start,end,p,name,args,kwargs = self.events[eventId]
         del self.events[eventId]
-        o = deref(p)
+        o = p()
         if o and hasattr(o,name):
             func = getattr(o,name)
             func(*args,**kwargs)

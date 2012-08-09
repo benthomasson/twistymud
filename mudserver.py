@@ -11,8 +11,8 @@ from twistymud.clock import Clock
 from twistymud.message import Channel
 from twistymud.character import Character
 
-from twistymud.persist import Persistence, persist, getOrCreate, makeTemporary
-import twistymud.persist
+from persist import Persistence,  getOrCreate, makeTemporary
+import persist
 
 class MudProtocol(basic.LineReceiver):
 
@@ -28,7 +28,11 @@ class MudProtocol(basic.LineReceiver):
         self.channel.addListener(self)
         self.character = Character()
         self.character.addListener(self)
-        persist(self.character)
+        persist.persist(self.character)
+
+    def command_help(self,*args):
+        self.sendLine("No help yet.")
+        self.prompt()
 
     def command_quit(self,*args):
         self.sendLine("Goodbye.")
@@ -78,7 +82,7 @@ class Mud(object):
         return cls.instance
 
     def __init__(self,port=PORT):
-        twistymud.persist.persistence = Persistence(DB_NAME)
+        persist.persistence = Persistence(DB_NAME)
         self.clock = getOrCreate('clock',Clock)
         self.clock.debug = True
         self.channel = getOrCreate('channel',Channel)
@@ -92,7 +96,7 @@ class Mud(object):
             reactor.run()
         finally:
             print "\Persisting..."
-            twistymud.persist.persistence.syncAll()
-            twistymud.persist.persistence.close()
+            persist.persistence.syncAll()
+            persist.persistence.close()
             print "\nDone"
 

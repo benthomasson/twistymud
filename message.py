@@ -2,7 +2,7 @@
 
 import unittest
 
-from twistymud.persist import getP, deref
+from persist import getP
 
 class Message(object):
 
@@ -38,7 +38,7 @@ class Channel(object):
         _exclude = message.dict['_exclude']
         for id in self.listeners.copy().keys():
             listener = self.listeners[id]
-            listener = deref(listener)
+            listener = listener()
             if listener and listener not in _exclude:
                 listener.receiveMessage(message)
             elif not listener:
